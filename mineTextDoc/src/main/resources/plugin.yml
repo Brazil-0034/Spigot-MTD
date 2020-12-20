@@ -1,0 +1,10 @@
+name: mineTextDoc
+main: norma.mineTextDoc.mineTextDoc
+version: "1.0"
+commands:
+  t1:
+  t2:
+  t3:
+  tsave:
+  tpaste:
+  
