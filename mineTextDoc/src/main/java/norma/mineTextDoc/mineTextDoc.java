@@ -8,10 +8,17 @@ import java.io.PrintWriter;
 import java.util.Random;
 import java.util.Scanner;
 
+import javax.xml.crypto.Data;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Server;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -35,6 +42,7 @@ public class mineTextDoc extends JavaPlugin implements Listener {
 	public void onEnable()
 	{
 		getServer().getPluginManager().registerEvents(this, this);
+		fileToRead = new File(getDataFolder(), "spacecraft.txt");
 	}
 	
 	Location tl1 = null;
@@ -42,6 +50,10 @@ public class mineTextDoc extends JavaPlugin implements Listener {
 	Vector max = null;
 	Vector min = null;
 	File mtd = null;
+	int c = 0;
+	File fileToRead;
+	String stringSplitter = "|";
+	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
 		if (label.equalsIgnoreCase("t1"))
@@ -111,7 +123,6 @@ public class mineTextDoc extends JavaPlugin implements Listener {
 				try {
 					fw = new FileWriter(mtd, true);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				PrintWriter pw = new PrintWriter(fw);
@@ -126,7 +137,14 @@ public class mineTextDoc extends JavaPlugin implements Listener {
 							Location currentLoc = new Location(player.getWorld(), x, y, z);
 							Location locDiff = player.getLocation().subtract(currentLoc);
 	
-							if (currentLoc.getBlock().getType() != Material.AIR) pw.println(currentLoc.getBlock().getType().toString() + "," + Math.round(locDiff.getX()) + "," + Math.round(locDiff.getY() * -1) + "," + Math.round(locDiff.getZ()));
+							if (currentLoc.getBlock().getType() != Material.AIR)
+							{
+									pw.println(currentLoc.getBlock().getType().toString()
+										+ stringSplitter + Math.round(locDiff.getX())
+										+ stringSplitter + Math.round(locDiff.getY() * -1)
+										+ stringSplitter + Math.round(locDiff.getZ())
+										+ stringSplitter + currentLoc.getBlock().getBlockData());
+							}
 						}
 					}
 				}
@@ -149,7 +167,7 @@ public class mineTextDoc extends JavaPlugin implements Listener {
 				File fileToRead = new File(getDataFolder(), args[0] + ".txt");
 				if (fileToRead.exists())
 				{
-					pasteOp(player, playerLoc, plugin, fileToRead);
+					pasteOp(playerLoc, plugin, fileToRead, player.getWorld());
 				}
 				else
 				{
@@ -160,14 +178,16 @@ public class mineTextDoc extends JavaPlugin implements Listener {
 		return false;
 	}
 	
-	public boolean pasteOp(Player player, Location playerLoc, JavaPlugin plugin, File fileName)
+	public boolean pasteOp(Location playerLoc, JavaPlugin plugin, File fileName, World world)
 	{
-		if (mtd.exists()) {
+		c++;
+		if (fileName.exists()) {
 			new BukkitRunnable()
 			{
 				@Override
 				public void run()
 				{
+					BlockData data = null;
 					Scanner scan = null;
 					try {
 						scan = new Scanner(fileName);
@@ -177,49 +197,65 @@ public class mineTextDoc extends JavaPlugin implements Listener {
 					while (scan.hasNextLine())
 					{
 						String currentLine = scan.nextLine();
-						player.sendMessage(currentLine);
 						
-						String[] lineContents = currentLine.split(",");
+						String[] lineContents = currentLine.split("\\|");
 
 						String currentBlockStr = lineContents[0];
 						int xpos = Integer.parseInt(lineContents[1]);
 						int ypos = Integer.parseInt(lineContents[2]);
 						int zpos = Integer.parseInt(lineContents[3]);
-						Location blockLoc = new Location(player.getWorld(), xpos, ypos, zpos).add(playerLoc);
-						getLogger().info(currentBlockStr);
+						Location blockLoc = new Location(world, xpos, ypos, zpos).add(playerLoc);
 						Material currentBlock = getCurrentMaterial(currentBlockStr);
 						if (currentBlock != null)
 						{
+							data = returnBlockData(lineContents[4]);
 							blockLoc.getBlock().setType(currentBlock);
+							blockLoc.getBlock().setBlockData(data);
 						}
 					}
 					this.cancel();
-					player.sendMessage("DONE!");
 				}
 			}.runTaskTimer(plugin, 1, 1);
 		}
 		return true;
 	}
 	
+	public BlockData returnBlockData(String str)
+	{
+		//createBlockData IS NOT CREATING BLOCK DATA, instead RETURNING EMPTY. FIX THIS!!
+		//perhaps the string is poorly formatted?
+		String stri = str.substring(25, str.length() - 1);
+		Bukkit.getLogger().warning(stri);
+		BlockData d = null;
+		try {
+			d = Bukkit.createBlockData(stri);
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		}
+		return d;
+	}
+	
 	Material getCurrentMaterial(String mat)
 	{
+		//matchMaterial is not thread safe
 		return Material.matchMaterial(mat);
 	}
 	
 	@EventHandler (priority = EventPriority.HIGHEST)
 	public void onChunkPopulate(ChunkPopulateEvent e)
 	{
-		for (Player player : Bukkit.getOnlinePlayers()) {
-			player.sendMessage("CHUNK GENERATED");
-		}
 		
 		Random rand = new Random();
 		
 		Double r = rand.nextDouble();
 		
-		if (r < 0.2)
+		if (r < 0.01)
 		{
-			//do nothing
+			Location startBlock = e.getChunk().getBlock(0, 120, 0).getLocation(); // < The getBlock params are chunk coords, so 0-15, 0-255, 0-15
+			pasteOp(startBlock, this, fileToRead, e.getWorld());
+			for (Player player : Bukkit.getOnlinePlayers()) {
+				player.sendMessage(c + " CCs.");
+			}
 		}
 		
 	}
