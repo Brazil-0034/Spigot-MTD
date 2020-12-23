@@ -222,7 +222,7 @@ public class mineTextDoc extends JavaPlugin implements Listener {
 	
 	public BlockData returnBlockData(String str)
 	{
-		//createBlockData IS NOT CREATING BLOCK DATA, instead RETURNING EMPTY. FIX THIS!!
+		//if createBlockData IS NOT CREATING BLOCK DATA, instead RETURNING EMPTY. FIX THIS!!
 		//perhaps the string is poorly formatted?
 		String stri = str.substring(25, str.length() - 1);
 		Bukkit.getLogger().warning(stri);
