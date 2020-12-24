@@ -85,23 +85,6 @@ public class mineTextDoc extends JavaPlugin implements Listener {
 			}
 			return false;
 		}
-		if (label.equalsIgnoreCase("t3"))
-		{
-			Player player = (Player) sender;
-			max = Vector.getMaximum(tl1.toVector(), tl2.toVector());
-			min = Vector.getMinimum(tl1.toVector(), tl2.toVector());
-			for (int z = min.getBlockZ(); z < max.getBlockZ(); z++)
-			{
-				for (int x = min.getBlockX(); x < max.getBlockX(); x++)
-				{
-					for (int y = min.getBlockY(); y < max.getBlockY(); y++)
-					{
-						Location currentLoc = new Location(player.getWorld(), x, y, z);
-						currentLoc.getBlock().setType(Material.ORANGE_WOOL);
-					}
-				}
-			}
-		}
 		if (label.equalsIgnoreCase("tsave"))
 		{
 			Player player = (Player) sender;
@@ -197,20 +180,22 @@ public class mineTextDoc extends JavaPlugin implements Listener {
 					while (scan.hasNextLine())
 					{
 						String currentLine = scan.nextLine();
-						
-						String[] lineContents = currentLine.split("\\|");
-
-						String currentBlockStr = lineContents[0];
-						int xpos = Integer.parseInt(lineContents[1]);
-						int ypos = Integer.parseInt(lineContents[2]);
-						int zpos = Integer.parseInt(lineContents[3]);
-						Location blockLoc = new Location(world, xpos, ypos, zpos).add(playerLoc);
-						Material currentBlock = getCurrentMaterial(currentBlockStr);
-						if (currentBlock != null)
+						if (currentLine != "")
 						{
-							data = returnBlockData(lineContents[4]);
-							blockLoc.getBlock().setType(currentBlock);
-							blockLoc.getBlock().setBlockData(data);
+							String[] lineContents = currentLine.split("\\|");
+
+							String currentBlockStr = lineContents[0];
+							int xpos = Integer.parseInt(lineContents[1]);
+							int ypos = Integer.parseInt(lineContents[2]);
+							int zpos = Integer.parseInt(lineContents[3]);
+							Location blockLoc = new Location(world, xpos, ypos, zpos).add(playerLoc);
+							Material currentBlock = getCurrentMaterial(currentBlockStr);
+							if (currentBlock != null)
+							{
+								data = returnBlockData(lineContents[4]);
+								blockLoc.getBlock().setType(currentBlock);
+								blockLoc.getBlock().setBlockData(data);
+							}
 						}
 					}
 					this.cancel();
@@ -222,7 +207,7 @@ public class mineTextDoc extends JavaPlugin implements Listener {
 	
 	public BlockData returnBlockData(String str)
 	{
-		//if createBlockData IS NOT CREATING BLOCK DATA, instead RETURNING EMPTY. FIX THIS!!
+		//createBlockData IS NOT CREATING BLOCK DATA, instead RETURNING EMPTY. FIX THIS!!
 		//perhaps the string is poorly formatted?
 		String stri = str.substring(25, str.length() - 1);
 		Bukkit.getLogger().warning(stri);
