@@ -26,8 +26,6 @@ Running a chunk preloader isn't necessary.
 
 ## Known Issues
 
- - The Spigot API has many methods written not to be thread-safe. This can lead to unpredictable behavior, leakage, and missing pastes.
- Thankfully, the server console will report these clearly.
- - Saves do not overwrite, instead, they mesh together. This is intentional.
- - MTDs in the latest patch now format as `Type,x1,x2,x3,Blockdata` and use blockdata provided by Spigot API - 
+ - Saves do overwrite, but in process, they mesh together. (This is intentional)
+ - MTDs now format as `Type,x1,x2,x3,Blockdata` and use blockdata provided by Spigot API - 
  meaning, entities and status effects will not save.
